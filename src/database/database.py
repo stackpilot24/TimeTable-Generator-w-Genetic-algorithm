@@ -79,8 +79,11 @@ class _ConnectionWrapper:
 
 def connect_db():
     if Config.DATABASE_URL:
-        # A full connection URL (e.g. from Neon/Supabase) is used as-is.
-        conn = psycopg2.connect(Config.DATABASE_URL)
+        # A full connection URL (e.g. from Supabase). Strip any stray whitespace
+        # or line breaks that can sneak in when pasting it into a host's env-var
+        # box (a valid Postgres URI never contains literal whitespace).
+        dsn = "".join(Config.DATABASE_URL.split())
+        conn = psycopg2.connect(dsn)
     else:
         conn = psycopg2.connect(
             host=Config.DB_HOST,

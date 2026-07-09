@@ -9,9 +9,35 @@
 {% endblock %}
 
 {% block content %}
-<div style="margin-bottom: 2.5rem;">
+{% set is_higher = session.get('school_type') in ['college', 'university'] %}
+<div style="margin-bottom: 2rem;">
     <h1 style="font-family: 'Outfit', sans-serif; font-weight: 700; margin-bottom: 0.5rem;">Curriculum & Classes</h1>
     <p style="color: var(--text-muted);">Manage your classes and assign subjects to teachers.</p>
+</div>
+
+<!-- Bulk Import -->
+<div class="card" style="margin-bottom: 2rem; border-left: 4px solid var(--success);">
+    <h3 style="margin-bottom: 0.75rem; font-family: 'Outfit', sans-serif; display: flex; align-items: center; gap: 0.75rem;">
+        <i class="fas fa-file-import" style="color: var(--success);"></i> Import from Excel / CSV
+    </h3>
+    <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;">
+        Upload a spreadsheet and we'll create the classes, teachers and subjects automatically —
+        then just head to <strong>Generate New</strong>. Required columns: <strong>Class</strong>,
+        <strong>Subject</strong>, <strong>Teacher</strong>{% if is_higher %} (plus optional
+        <strong>Semester</strong> and <strong>Credits</strong>){% endif %}.
+        Accepts <code>.xlsx</code> and <code>.csv</code> files.
+    </p>
+    <form action="{{ url_for('management.import_curriculum') }}" method="POST" enctype="multipart/form-data"
+        style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+        <input type="file" name="curriculum_file" accept=".xlsx,.csv" required
+            style="flex: 1; min-width: 220px; margin-bottom: 0;">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-upload"></i> Import
+        </button>
+        <a href="{{ url_for('management.sample_curriculum') }}" class="btn btn-secondary">
+            <i class="fas fa-download"></i> Download Template
+        </a>
+    </form>
 </div>
 
 <div class="grid grid-cols-2" style="align-items: flex-start;">
@@ -127,6 +153,7 @@
                 </div>
             </div>
 
+            {% if is_higher %}
             <div class="grid grid-cols-2">
                 <div class="form-group">
                     <label>Semester / Term</label>
@@ -139,6 +166,17 @@
                         value="{{ edit_subject.credits if edit_subject else '4' }}">
                 </div>
             </div>
+            {% else %}
+            <!-- Schools: semester/credits are hidden and default server-side. -->
+            <div class="form-group">
+                <label>Weekly Lectures</label>
+                <input type="number" name="credits" placeholder="e.g. 5" required min="1"
+                    value="{{ edit_subject.credits if edit_subject else '5' }}">
+                <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.4rem;">
+                    How many periods per week this subject should get.
+                </p>
+            </div>
+            {% endif %}
 
             <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
                 <i class="fas fa-save"></i> {{ 'Update Subject' if edit_subject else 'Save Subject' }}
@@ -160,8 +198,8 @@
                     <th>Subject</th>
                     <th>Class</th>
                     <th>Teacher</th>
-                    <th>Semester</th>
-                    <th>Credits</th>
+                    {% if is_higher %}<th>Semester</th>{% endif %}
+                    <th>{{ 'Credits' if is_higher else 'Lectures/wk' }}</th>
                     <th style="text-align: right;">Actions</th>
                 </tr>
             </thead>
@@ -174,7 +212,7 @@
                             s.class_name }}</span></td>
                     <td><i class="fas fa-user-circle" style="color: var(--text-muted); margin-right: 0.25rem;"></i> {{
                         s.teacher_name }}</td>
-                    <td>{{ s.semester }}</td>
+                    {% if is_higher %}<td>{{ s.semester }}</td>{% endif %}
                     <td><span class="badge">{{ s.credits }}</span></td>
                     <td style="text-align: right;">
                         <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
@@ -196,7 +234,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                    <td colspan="{{ 6 if is_higher else 5 }}" style="text-align: center; padding: 3rem; color: var(--text-muted);">
                         No subjects assigned yet.
                     </td>
                 </tr>

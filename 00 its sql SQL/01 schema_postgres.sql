@@ -19,6 +19,8 @@ CREATE TABLE schools (
   school_name      VARCHAR(100) NOT NULL,
   username         VARCHAR(50)  NOT NULL UNIQUE,
   password_hash    VARCHAR(255) NOT NULL,
+  -- 'school' hides semester/credits in the UI; 'college'/'university' show them.
+  school_type      VARCHAR(20)  NOT NULL DEFAULT 'school',
   start_time       VARCHAR(10),
   end_time         VARCHAR(10),
   lecture_duration INT,

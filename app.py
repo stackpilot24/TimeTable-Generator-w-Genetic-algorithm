@@ -9,6 +9,11 @@ from src.auth.auth import auth_bp  # login, register
 app = Flask(__name__, template_folder='frontend/templates', static_folder='frontend/static')
 app.config.from_object(Config)
 
+# Run lightweight, idempotent migrations at startup (adds columns that older
+# production databases may be missing). Safe if the DB is briefly unavailable.
+from src.database.database import ensure_schema
+ensure_schema()
+
 app.register_blueprint(main_bp)
 app.register_blueprint(management_bp)
 app.register_blueprint(generation_bp)

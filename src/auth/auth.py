@@ -13,6 +13,9 @@ def register():
             school_name = request.form.get('school_name')
             username = request.form.get('username')
             password = request.form.get('password')
+            school_type = request.form.get('school_type', 'school')
+            if school_type not in ('school', 'college', 'university'):
+                school_type = 'school'
             start_time_str = request.form.get('start_time')
             lecture_duration = int(request.form.get('lecture_duration'))
             num_lectures = int(request.form.get('num_lectures'))
@@ -54,10 +57,10 @@ def register():
                 return redirect(url_for('auth.register'))
 
             sql = """
-                INSERT INTO schools (school_name, username, password_hash, start_time, end_time, lecture_duration, break_start_time, break_duration)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO schools (school_name, username, password_hash, school_type, start_time, end_time, lecture_duration, break_start_time, break_duration)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(sql, (school_name, username, hashed_password, start_time_str, end_time_str, lecture_duration, break_start_str, break_duration))
+            cursor.execute(sql, (school_name, username, hashed_password, school_type, start_time_str, end_time_str, lecture_duration, break_start_str, break_duration))
             db.commit()
             db.close()
 
@@ -85,6 +88,7 @@ def login():
         if school and check_password_hash(school['password_hash'], password):
             session['school_id'] = school['school_id']
             session['school_name'] = school['school_name']
+            session['school_type'] = school.get('school_type', 'school')
             
             # Store time config in session for easy access
             session['time_config'] = {

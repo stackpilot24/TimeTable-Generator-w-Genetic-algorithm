@@ -30,6 +30,17 @@
                     <input type="text" id="school_name" name="school_name" required
                         placeholder="e.g. Westside High School">
                 </div>
+                <div class="form-group">
+                    <label for="school_type">Institution Type</label>
+                    <select id="school_type" name="school_type" required>
+                        <option value="school">School (no semesters / credits)</option>
+                        <option value="college">College (semesters &amp; credits)</option>
+                        <option value="university">University (semesters &amp; credits)</option>
+                    </select>
+                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.4rem;">
+                        Colleges &amp; universities will be able to set a semester and credits for each subject.
+                    </p>
+                </div>
                 <div class="grid grid-cols-2">
                     <div class="form-group">
                         <label for="username">Admin Username</label>

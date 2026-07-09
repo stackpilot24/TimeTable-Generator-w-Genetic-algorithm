@@ -57,7 +57,26 @@ body {
     flex-direction: column;
     position: fixed;
     height: 100vh;
+    /* Allow the nav to scroll when it is taller than the viewport, so the
+       bottom items (Generate New, Logout) are always reachable. */
+    overflow-y: auto;
     z-index: 100;
+}
+
+/* Slim scrollbar for the dark sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+}
+
+/* Keep the logout/login block from being squeezed to zero height */
+.sidebar>div:last-child {
+    flex-shrink: 0;
+    padding-top: 1rem;
 }
 
 .sidebar-logo {

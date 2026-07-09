@@ -62,18 +62,8 @@
         <div class="card" style="padding: 0; overflow: hidden; border: 2px solid var(--border);">
             <div class="table-container" style="border: none; border-radius: 0; margin-top: 0;">
                 <table style="border-collapse: collapse;">
-                    <thead>
-                        <tr>
-                            <th
-                                style="background: var(--bg-main); width: 100px; border-right: 2px solid var(--border);">
-                                Time</th>
-                            <th>Mon</th>
-                            <th>Tue</th>
-                            <th>Wed</th>
-                            <th>Thu</th>
-                            <th>Fri</th>
-                            <th>Sat</th>
-                        </tr>
+                    <thead id="timetableHead">
+                        <!-- JS Populated: Day / time-slot columns -->
                     </thead>
                     <tbody id="timetableBody">
                         <!-- JS Populated -->
@@ -209,49 +199,72 @@
                 }
 
                 document.getElementById('resultTitle').innerText = `${className} - Semester ${semester}`;
+                let timetableHead = document.getElementById("timetableHead");
                 let timetableBody = document.getElementById("timetableBody");
+                timetableHead.innerHTML = "";
                 timetableBody.innerHTML = "";
 
                 let visualSlots = data.visual_slots;
                 let timetable = data.timetable;
                 let days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
+                // Header row: Day/Time corner + one column per time slot (time horizontal)
+                let headRow = document.createElement('tr');
+                headRow.innerHTML = `<th style="background: var(--bg-main); width: 110px; border-right: 2px solid var(--border); position: sticky; left: 0; z-index: 2;">Day / Time</th>`;
                 visualSlots.forEach(slot => {
+                    let th = document.createElement('th');
+                    th.style.textAlign = "center";
+                    if (slot.type === 'break') {
+                        th.style.color = "var(--warning)";
+                        th.innerHTML = `${slot.time.substring(0, 5)}<br><span style="font-size: 0.65rem;">Break</span>`;
+                    } else {
+                        th.style.minWidth = "110px";
+                        th.textContent = slot.time.substring(0, 5);
+                    }
+                    headRow.appendChild(th);
+                });
+                timetableHead.appendChild(headRow);
+
+                // Body: one row per day (days vertical)
+                days.forEach(day => {
                     let row = document.createElement('tr');
 
-                    if (slot.type === 'break') {
-                        row.innerHTML = `
-                            <td style="font-weight: 700; background-color: var(--bg-main); border-right: 2px solid var(--border); color: var(--warning); text-align: center;">${slot.time.substring(0, 5)}</td>
-                            <td colspan="6" style="background-color: rgba(245, 158, 11, 0.03); text-align: center; font-size: 0.7rem; color: var(--warning); font-weight: 800; letter-spacing: 0.2em;">BREAK PERIOD</td>
-                        `;
-                    } else {
-                        let timeCell = document.createElement('td');
-                        timeCell.textContent = slot.time.substring(0, 5);
-                        timeCell.style.fontWeight = "600";
-                        timeCell.style.background = "var(--bg-main)";
-                        timeCell.style.borderRight = "2px solid var(--border)";
-                        row.appendChild(timeCell);
+                    let dayCell = document.createElement('td');
+                    dayCell.textContent = day;
+                    dayCell.style.fontWeight = "700";
+                    dayCell.style.background = "var(--bg-main)";
+                    dayCell.style.borderRight = "2px solid var(--border)";
+                    dayCell.style.position = "sticky";
+                    dayCell.style.left = "0";
+                    dayCell.style.zIndex = "1";
+                    row.appendChild(dayCell);
 
-                        days.forEach(day => {
-                            let cell = document.createElement('td');
-                            cell.style.height = "80px";
-                            cell.style.padding = "0.4rem";
-                            cell.style.verticalAlign = "top";
-                            cell.style.borderRight = "1px solid var(--border)";
-
-                            let key = `${day}_${slot.time}`;
-                            let subject = timetable[key] || "";
-                            if (subject) {
-                                cell.innerHTML = `
-                                    <div style="padding: 0.5rem; background: rgba(99, 102, 241, 0.08); border-left: 3px solid var(--primary); border-radius: 0.4rem; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center;">
-                                        <span style="font-weight: 700; color: var(--primary); font-size: 0.8rem;">${subject}</span>
-                                    </div>`;
-                            } else {
-                                cell.innerHTML = '<div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.1;"><i class="fas fa-minus" style="font-size: 0.6rem;"></i></div>';
-                            }
+                    visualSlots.forEach(slot => {
+                        let cell = document.createElement('td');
+                        if (slot.type === 'break') {
+                            cell.style.background = "rgba(245, 158, 11, 0.06)";
+                            cell.style.textAlign = "center";
+                            cell.innerHTML = '<span style="font-size: 0.65rem; color: var(--warning); font-weight: 800;">BREAK</span>';
                             row.appendChild(cell);
-                        });
-                    }
+                            return;
+                        }
+                        cell.style.height = "80px";
+                        cell.style.padding = "0.4rem";
+                        cell.style.verticalAlign = "top";
+                        cell.style.borderRight = "1px solid var(--border)";
+
+                        let key = `${day}_${slot.time}`;
+                        let subject = timetable[key] || "";
+                        if (subject) {
+                            cell.innerHTML = `
+                                <div style="padding: 0.5rem; background: rgba(99, 102, 241, 0.08); border-left: 3px solid var(--primary); border-radius: 0.4rem; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center;">
+                                    <span style="font-weight: 700; color: var(--primary); font-size: 0.8rem;">${subject}</span>
+                                </div>`;
+                        } else {
+                            cell.innerHTML = '<div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.1;"><i class="fas fa-minus" style="font-size: 0.6rem;"></i></div>';
+                        }
+                        row.appendChild(cell);
+                    });
 
                     timetableBody.appendChild(row);
                 });

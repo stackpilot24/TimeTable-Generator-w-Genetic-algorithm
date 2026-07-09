@@ -95,6 +95,28 @@ def connect_db():
         )
     return _ConnectionWrapper(conn)
 
+def ensure_schema():
+    """Idempotent, safe-to-run-on-every-boot migrations.
+
+    The production database on Render/Supabase was created before some columns
+    existed, so we add them here with `IF NOT EXISTS` instead of recreating the
+    schema. Any failure is swallowed so a transient DB hiccup can't stop the web
+    process from booting.
+    """
+    try:
+        db = connect_db()
+        cur = db.cursor()
+        cur.execute(
+            "ALTER TABLE schools ADD COLUMN IF NOT EXISTS "
+            "school_type VARCHAR(20) NOT NULL DEFAULT 'school'"
+        )
+        db.commit()
+        db.close()
+    except Exception as e:
+        import logging
+        logging.warning(f"ensure_schema skipped: {e}")
+
+
 def fetch_data(class_name, semester, school_id):
     db = connect_db()
     cursor = db.cursor()
